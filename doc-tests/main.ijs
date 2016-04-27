@@ -3,24 +3,24 @@
 NB. Inline documentation and testing module 
 MODULE =: ''
 
-streq 	=. 0:`(*./@:=)@.(#@[ = #@])
-bstr_safe_ix =. (<'')"_`{@.([ < #@])
-str_safe_ix  =. (>@bstr_safe_ix)"0 1
-num_safe_ix  =. (0"_`{@.([ < #@]))"0 1
-remove_el =. -.@= # ]
+streq 	=: 0:`(*./@:=)@.(#@[ = #@])
+bstr_safe_ix =: (<'')"_`{@.([ < #@])
+str_safe_ix  =: (>@bstr_safe_ix)"0 1
+num_safe_ix  =: (0"_`{@.([ < #@]))"0 1
+remove_el =: -.@= # ]
 
 NB. Check if a text line is a J comment
-is_comment  =. ('NB'&streq)@>@{.@('.'&cut)
+is_comment  =: ('NB'&streq)@>@{.@('.'&cut)
 
 NB. Check if a text line is a J global assigment
 NB. Note: ;: does not split lines with comments, so  
 NB. 1 bstr_safe_ix (;: line) will always 
 NB. be 'empty' for comment lines
-is_assiment  =. ('=:'&streq)@>@(1&bstr_safe_ix)@;:
-is_assimentp =. ('=:'&streq +. '=.'&streq)@>@(1&bstr_safe_ix)@;:
+is_assiment  =: ('=:'&streq)@>@(1&bstr_safe_ix)@;:
+is_assimentp =: ('=:'&streq +. '=.'&streq)@>@(1&bstr_safe_ix)@;:
 
 NB. Reads a file in a boxed table where each col is a text line
-read_file =. ( LF&remove_el each) @ }.@ (<;.1) @ (LF&,) @ (1!:1)
+read_file =: ( LF&remove_el each) @ }.@ (<;.1) @ (LF&,) @ (1!:1)
 
 
 NB. reset_docs'' reset global DOCUMENTATION variable
@@ -38,6 +38,7 @@ NB.  be loaded if x is 1 then docs for private assigments
 NB.  will also be imported. load_docs_i returens the docs
 NB.  it does not alter the global DOCUMENTATION variable.
 load_docs_i =: dyad define
+	echo y
 	text =. read_file <y
 
 	cm =. > @: (is_comment each)  text
@@ -104,16 +105,16 @@ doc =: verb define
 
 
 
-is_test  =. ( '.'&= +. ':'&= ) @ {.
-get_tests =. }."1 @: ( is_test"1 @ ] # ])
+is_test   =: ( '.'&= +. ':'&= ) @ {.
+get_tests =: }."1 @: ( is_test"1 @ ] # ])
 
-space =. 32 { a.
-tab   =. 9 { a.
+space =: 32 { a.
+tab   =: 9 { a.
 
 NB. 1 - execute line (zero or two or more spaces/tabs)
 NB. 0 - test wether the output of the previous executed line 
 NB. matches the current line (one space/tab)
-parse_test =. ((~:&1)@+/"1@:>@ (0 1&num_safe_ix)@(space&= +. tab&=))
+parse_test =: ((~:&1)@+/"1@:>@ (0 1&num_safe_ix)@(space&= +. tab&=))
 
 NB. function run_tests_i docs -- run tests where docs are the docs and function is 
 NB. a function name. 
@@ -136,7 +137,7 @@ NB. docs   =. 1 load_docs_i
 		if. i { ptests do. prev =. ":". line
 		else. 
 
-			if. prev streq line do. 
+			if. prev streq&dltb line do. 
 				succ =. succ + 1
 			else.
 				fail =. fail + 1		
