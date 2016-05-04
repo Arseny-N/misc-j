@@ -1,5 +1,5 @@
 
-require 'strings ~p/prelude.ijs'
+require 'strings'
 
 NB. Build a shared library 
 
@@ -112,6 +112,9 @@ NB. lib get_data_i (struct0;mem0;mem1...)
 get_data_i   =: >@{.@] ; <@get_data_ii
 get_data_ii  =: [ get_data_iii"1 ({. ;&> }.)@]
 get_data_iii =: ,@:>@:}.@:] ; sizeof_i , offsetof_i
+
+NB. str0 streq str1 -- tests  weather str0 is equal to str1 works even if they are of different lengths
+streq =: 0:`(*./@:=)@.(#@[ = #@])
 
 
 NB. type;mem find_entry_i   DATA
@@ -326,13 +329,13 @@ redisFree =: (LIB,' redisFree  n *c') & cd @ <
 NB. redisCommand redisContext-pointer;query  -- returns a redisReply-pointer
 redisCommand =: {. @ ((LIB, ' redisCommand  *c *c *c') & cd)
 
-NB. redis_get_string redisReply-string-pointer
-NB. redis_get_string =: ([ extract_chars 'redisReply';'str';@<@] ) 
-
-
 
 NB. freeReplyObject redisReply-pointer -- retrunns nothing
 freeReplyObject =: (LIB, ' freeReplyObject  n *c') & cd @ <
+
+reply_auto =: verb define
+           ''
+)
 
 NB. reply_str redisReply-pointer -- returns a string from reply
 reply_str =: verb define
@@ -344,8 +347,13 @@ NB. reply_int redisReply-pointer -- returns a string from reply
 reply_int =: verb define
           y extract_long 'redisReply';'integer'
 )
-reply_array =: verb define
-            
+NB. [cell-type] reply_array redisReply-pointer  -- returns a boxed rely
+NB.   cell-type could be 'int','str','auto'
+reply_array =: dyad define
+          elements =. y extract_size_t  'redisReply';'elements'
+          element  =. y extract_pointer  'redisReply';'element'
+          ps =. element read_pointer_n 0,elements
+          ". '(<@reply_', x ,'@>)"0 ps'
 )
 doit =: verb define
        ctx =: redisConnect '127.0.0.1';6379
@@ -356,14 +364,11 @@ doit =: verb define
 	             freeReplyObject rep
                case. 'int' do.              
                      rep =: redisCommand ctx;'INCR counter'
-                     r   =: reply_int 'redisReply';'integer'
+                     r   =: reply_int rep
        	             freeReplyObject rep
                case. 'list' do.
                      rep =: redisCommand ctx;'LRANGE mylist 0 -1'
-                     elements =: rep extract_size_t  'redisReply';'elements'
-                     element  =: rep extract_pointer  'redisReply';'element'
-                     ps =: element read_pointer_n 0,elements
-                     r  =: (<@reply_str@>)"0 ps
+                     r   =: 'str' reply_array rep
                      freeReplyObject rep
 
       end.
