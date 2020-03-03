@@ -3,7 +3,7 @@
 This project was made as a class project for a systems programming class 
 at the ITMO university. A report in Russian giving a short introduction to 
 the J language and describing in somewhat more detail the code is available 
-in the docs folder.
+as `report.pdf`.
 
 ## C FFI with J
 
